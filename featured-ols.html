@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>OLS Featured Chat</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    width:100vw;
+    height:100vh;
+    background: transparent;
+    overflow: hidden;
+    font-family: 'Oswald', 'Arial Narrow', -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  /* ancorato in basso, centrato orizzontalmente */
+  body {
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding-bottom: 48px;
+  }
+
+  #container {
+    width: 90vw;
+    max-width: 1400px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .card {
+    position: relative;
+    display:flex;
+    align-items:flex-start;
+    gap: 18px;
+    background: #0a0a0a;
+    border: 2px solid #C5A253;
+    border-radius: 6px;
+    padding: 18px 28px 18px 24px;
+    max-height: 42vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+  }
+
+  .card.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* dettaglio pinstripe sul lato sinistro */
+  .card::before {
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width: 6px;
+    background: repeating-linear-gradient(
+      to bottom,
+      #C5A253 0px, #C5A253 3px,
+      transparent 3px, transparent 6px
+    );
+    border-radius: 6px 0 0 6px;
+  }
+
+  .avatar {
+    flex: 0 0 auto;
+    width: 52px;
+    height: 52px;
+    border-radius: 4px;
+    border: 2px solid #C5A253;
+    background-size: cover;
+    background-position: center;
+    background-color:#1a1a1a;
+  }
+
+  .body-text {
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .name {
+    color: #C5A253;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 22px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .source-icon {
+    width:18px; height:18px;
+  }
+
+  .message {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.35;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  /* scrollbar sottile per messaggi molto lunghi */
+  .card::-webkit-scrollbar { width: 6px; }
+  .card::-webkit-scrollbar-thumb { background: #C5A253; border-radius: 3px; }
+  .card::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div id="container"></div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const session = urlParams.get('session');
+  const showtime = parseInt(urlParams.get('showtime')) || 12000; // ms, default 12s
+
+  if (!session) {
+    document.body.innerHTML = "<div style='color:#C5A253;font-family:sans-serif;padding:20px;'>Manca ?session=IL_TUO_SESSION_ID nell'URL</div>";
+  } else {
+    connect();
+  }
+
+  let socket = null;
+  let hideTimer = null;
+
+  function connect(){
+    socket = new WebSocket('wss://io.socialstream.ninja:443');
+
+    socket.addEventListener('open', () => {
+      socket.send(JSON.stringify({ join: session, in: 4, out: 4 }));
+    });
+
+    socket.addEventListener('message', (event) => {
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch(e){ return; }
+
+      // ignora messaggi di sistema / join ack
+      if (!data || (!data.chatmessage && !data.chatname)) return;
+
+      renderMessage(data);
+    });
+
+    socket.addEventListener('close', () => {
+      setTimeout(connect, 3000); // riconnessione automatica
+    });
+
+    socket.addEventListener('error', () => {
+      socket.close();
+    });
+  }
+
+  function renderMessage(data){
+    const container = document.getElementById('container');
+    container.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    if (data.chatimg) {
+      avatar.style.backgroundImage = `url('${data.chatimg}')`;
+    }
+
+    const bodyText = document.createElement('div');
+    bodyText.className = 'body-text';
+
+    const name = document.createElement('div');
+    name.className = 'name';
+
+    if (data.type) {
+      const icon = document.createElement('img');
+      icon.className = 'source-icon';
+      icon.src = `https://socialstream.ninja/sources/images/${data.type}.png`;
+      icon.onerror = () => icon.style.display = 'none';
+      name.appendChild(icon);
+    }
+
+    const nameText = document.createElement('span');
+    nameText.textContent = data.chatname || '';
+    name.appendChild(nameText);
+
+    const message = document.createElement('div');
+    message.className = 'message';
+    message.textContent = data.chatmessage || '';
+
+    bodyText.appendChild(name);
+    bodyText.appendChild(message);
+
+    card.appendChild(avatar);
+    card.appendChild(bodyText);
+    container.appendChild(card);
+
+    requestAnimationFrame(() => card.classList.add('show'));
+
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      card.classList.remove('show');
+      setTimeout(() => { container.innerHTML = ''; }, 400);
+    }, showtime);
+  }
+</script>
+
+</body>
+</html>
