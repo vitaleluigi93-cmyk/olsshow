@@ -122,14 +122,14 @@
   const session = urlParams.get('session');
   const showtime = parseInt(urlParams.get('showtime')) || 12000; // ms, default 12s
 
+  let socket = null;
+  let hideTimer = null;
+
   if (!session) {
     document.body.innerHTML = "<div style='color:#C5A253;font-family:sans-serif;padding:20px;'>Manca ?session=IL_TUO_SESSION_ID nell'URL</div>";
   } else {
     connect();
   }
-
-  let socket = null;
-  let hideTimer = null;
 
   function connect(){
     socket = new WebSocket('wss://io.socialstream.ninja:443');
