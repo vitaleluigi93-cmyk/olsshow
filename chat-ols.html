@@ -113,7 +113,7 @@
   const q = new URLSearchParams(location.search);
   const SESSION  = q.get('session') || 'xMYd3nZK7g';
   const CHANNEL  = q.get('channel') || '4';
-  const MAX      = parseInt(q.get('max') || '6', 10);          // messaggi visibili
+  const MAX      = parseInt(q.get('max') || '3', 10);          // messaggi visibili (i più vecchi vengono tolti)
   const SHOWTIME = parseInt(q.get('showtime') || '0', 10);      // secondi; 0 = restano finché non vengono spinti via
   const HIDEBOTS = (q.get('hidebots') || 'streamelements,nightbot,streamlabs,moobot,restream,fossabot').toLowerCase().split(',');
   if (q.get('width'))  document.documentElement.style.setProperty('--w', q.get('width') + 'px');
@@ -188,7 +188,8 @@
     el.appendChild(plate); el.appendChild(tx);
     stack.appendChild(el);
 
-    while (stack.children.length > MAX) remove(stack.firstElementChild);
+    const live = () => Array.from(stack.children).filter(c => !c.classList.contains('out'));
+    while (live().length > MAX) remove(live()[0]);
     if (SHOWTIME > 0) setTimeout(() => remove(el), SHOWTIME * 1000);
   }
 

@@ -134,6 +134,19 @@
   };
   const evLabel = k => EVENT_LABELS[String(k || '').toLowerCase().replace(/[\s_-]/g, '')] || null;
 
+  /* diagnostica: aggiungi ?debug all'indirizzo per vedere lo stato della connessione e l'ultimo messaggio ricevuto */
+  const DEBUG = urlParams.has('debug');
+  function dbg(text){
+    if (!DEBUG) return;
+    let el = document.getElementById('dbg');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'dbg';
+      el.style.cssText = 'position:fixed;left:12px;top:12px;max-width:90vw;padding:8px 12px;background:rgba(0,0,0,.8);color:#9f9;font:14px/1.3 monospace;white-space:pre-wrap;z-index:99';
+      document.body.appendChild(el);
+    }
+    el.textContent = text;
+  }
+
   connect();
 
   function connect(){
@@ -141,13 +154,15 @@
 
     socket.addEventListener('open', () => {
       socket.send(JSON.stringify({ join: session, out: 3, in: channel }));
+      dbg('CONNESSO · sessione ' + session + ' · canale ' + channel + '\nIn attesa di un messaggio scelto nel dock...');
     });
 
     socket.addEventListener('message', (event) => {
+      dbg('ULTIMO MESSAGGIO RICEVUTO (' + new Date().toLocaleTimeString() + ')\n' + String(event.data).slice(0, 300));
       handle(event.data);
     });
 
-    socket.addEventListener('close', () => { setTimeout(connect, 3000); });
+    socket.addEventListener('close', () => { dbg('DISCONNESSO · riprovo tra 3 secondi'); setTimeout(connect, 3000); });
     socket.addEventListener('error', () => { socket.close(); });
   }
 
