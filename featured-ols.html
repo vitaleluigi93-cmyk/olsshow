@@ -5,16 +5,16 @@
 <title>OLS Featured Chat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f6f1e4;
-    --ink: #14120d;
-    --muted: #6b665a;
+    --paper: #F7F3E8;
+    --ink: #15151A;
+    --plate: #15151A;
+    --name: #F7F3E8;
     --gold: #F4C430;
-    --gold-text: #8a6700;
-    --yt: #e62117;
-    --tw: #8a4fff;
+    --cut: 34px;            /* taglio obliquo sul lato destro della targhetta */
+    --edge: 5px;            /* spessore del filo oro sul taglio */
   }
   * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -25,66 +25,88 @@
     font-family: 'Oswald', 'Arial Narrow', sans-serif;
   }
 
-  /* ancorato in basso al centro; la carta si adatta al contenuto fino a 84% della larghezza */
+  /* ancorato in basso a sinistra (stesso margine di 52px del banner) */
   body {
-    display:flex; align-items:flex-end; justify-content:center;
-    padding-bottom: 56px;
+    display:flex; align-items:flex-end; justify-content:flex-start;
+    padding: 0 0 56px 52px;
   }
-  #container { display:flex; justify-content:center; width:100vw; }
+  #container { display:flex; justify-content:flex-start; }
 
+  /* barra chiara con filo oro da 4px: la targhetta scura occupa tutta l'altezza, quindi nome e messaggio restano centrati */
   .card {
-    display:flex; align-items:flex-start; gap:28px;
+    display:flex; align-items:stretch;
     width: fit-content;
-    min-width: 560px;
     max-width: 84vw;
-    max-height: 44vh;
-    padding: 26px 44px 28px 30px;
+    min-height: 156px;
+    padding: 0 56px 0 0;
     background: var(--paper);
-    border-radius: 10px;
-    box-shadow: 0 8px 28px rgba(0,0,0,.38);
-    opacity:0; transform: translateY(24px);
-    transition: opacity .4s ease-out, transform .4s cubic-bezier(.2,.8,.25,1);
+    color: var(--ink);
+    border-bottom: 4px solid var(--gold);
+    opacity:0; transform: translateX(-48px);
+    transition: opacity .5s ease, transform .6s cubic-bezier(.3,.7,.2,1);
   }
   .card.show { opacity:1; transform:none; }
-  /* filo oro a sinistra: solo per gli abbonati */
-  .card.sub { box-shadow: inset 9px 0 0 var(--gold), 0 8px 28px rgba(0,0,0,.38); padding-left: 40px; }
+
+  .plate {
+    position: relative; isolation: isolate;
+    flex: 0 0 auto;
+    min-width: 380px; max-width: 560px;
+    padding: 24px calc(var(--cut) + 26px) 24px 36px;
+    display:flex; align-items:center; justify-content:center; gap:24px;
+  }
+  .plate::before, .plate::after { content:""; position:absolute; top:0; bottom:0; left:0; z-index:-1; }
+  /* filo oro lungo il taglio obliquo */
+  .plate::before {
+    right: calc(var(--edge) * -1); background: var(--gold);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+  }
+  .plate::after {
+    right: 0; background: var(--plate);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+  }
 
   .avatar {
     flex: 0 0 auto;
-    width: 92px; height: 92px; border-radius: 50%;
-    background: var(--gold);
-    color: var(--ink);
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--gold); color: #15151A;
     display:flex; align-items:center; justify-content:center;
-    font-weight: 600; font-size: 46px;
+    font-family: 'Bebas Neue', sans-serif; font-weight:400; font-size: 52px; padding-top: 4px;
     overflow: hidden;
   }
   .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
 
-  .content { min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .pinfo { min-width:0; display:flex; flex-direction:column; justify-content:center; gap:9px; }
+  .name {
+    font-family: 'Bebas Neue', sans-serif; font-weight:400;
+    font-size: 54px; line-height: 1.1; letter-spacing: .06em;
+    color: var(--name);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 380px;
+  }
+  .tag {
+    font-size: 17px; font-weight:400; line-height: 1;
+    letter-spacing: .34em; text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap;
+  }
 
-  .who { display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; }
-  .name { font-weight:600; font-size:36px; line-height:1.1; color:var(--ink); }
-  .meta { display:flex; align-items:center; gap:16px; font-size:24px; font-weight:500; color:var(--muted); }
-  .platform { display:flex; align-items:center; gap:8px; }
-  .dot { width:11px; height:11px; border-radius:50%; background:#888; }
-  .dot.youtube { background:var(--yt); }
-  .dot.twitch { background:var(--tw); }
-  .badge { color: var(--gold-text); font-weight:600; }
-
+  .msgbox { flex: 1; min-width: 0; display:flex; align-items:center; padding: 28px 0 28px 44px; }
   .message {
     color: var(--ink);
     font-weight: 400;
     line-height: 1.28;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
-    overflow: hidden;
-    font-size: 58px;
+    max-height: 40vh; overflow: hidden;
+    font-size: 54px;
   }
   /* dimensione adattiva: i testi lunghi si allargano e si rimpiccioliscono, non si allungano in altezza */
-  .message.l2 { font-size: 50px; }
-  .message.l3 { font-size: 42px; }
-  .message.l4 { font-size: 36px; }
+  .message.l2 { font-size: 48px; }
+  .message.l3 { font-size: 40px; }
+  .message.l4 { font-size: 34px; }
   .message img { height:1.25em; width:auto; vertical-align:-0.25em; margin:0 2px; }
+
+  @media (prefers-reduced-motion: reduce) { .card { transition-duration: .01s; } }
 </style>
 </head>
 <body>
@@ -94,8 +116,8 @@
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const session = urlParams.get('session') || 'xMYd3nZK7g';
-  const channel = parseInt(urlParams.get('channel') || '4', 10);
-  const showtime = parseInt(urlParams.get('showtime')) || 12000; // ms; i messaggi lunghi restano di più
+  const channel = parseInt(urlParams.get('channel') || '2', 10); // 2 = messaggi scelti nel dock (4 = tutta la chat)
+  const showtime = parseInt(urlParams.get('showtime')) || 0;     // ms; 0 = resta finché non lo togli da SSN
 
   let socket = null;
   let hideTimer = null;
@@ -118,16 +140,11 @@
     socket = new WebSocket('wss://io.socialstream.ninja:443');
 
     socket.addEventListener('open', () => {
-      socket.send(JSON.stringify({ join: session, in: channel, out: channel }));
+      socket.send(JSON.stringify({ join: session, out: 3, in: channel }));
     });
 
     socket.addEventListener('message', (event) => {
-      let data;
-      try { data = JSON.parse(event.data); } catch(e){ return; }
-      if (data && data.overlayNinja) data = data.overlayNinja;
-      // ignora messaggi di sistema / join ack
-      if (!data || (!data.chatmessage && !data.chatname)) return;
-      renderMessage(data);
+      handle(event.data);
     });
 
     socket.addEventListener('close', () => { setTimeout(connect, 3000); });
@@ -150,6 +167,38 @@
     })(doc.body.firstChild);
   }
 
+  /* stessa logica di featured.html di SSN: messaggio scelto = mostra, "false"/clear = togli */
+  function handle(raw){
+    let data;
+    try { data = (typeof raw === 'string') ? JSON.parse(raw) : raw; } catch(e){ return; }
+    if (data && typeof data === 'object' && 'overlayNinja' in data) data = data.overlayNinja;
+
+    if (data === false || data === null) { clearMessage(); return; }
+    if (!data || typeof data !== 'object') return;
+    if (data.get || data.callback) return;                                  // risposte di servizio
+    if (data.target && data.target !== 'null') return;                      // destinato a un altro overlay
+
+    if ('content' in data) {
+      if (data.content && typeof data.content === 'object') renderMessage(data.content); else clearMessage();
+    } else if (data.action === 'content') {
+      let v = data.value;
+      if (typeof v === 'string') { try { v = JSON.parse(v); } catch(e) { v = false; } }
+      if (v && typeof v === 'object' && v.chatmessage !== undefined) renderMessage(v); else clearMessage();
+    } else if (data.action === 'clear') {
+      clearMessage();
+    } else if (!('action' in data) && ('chatmessage' in data)) {
+      renderMessage(data);
+    }
+  }
+
+  function clearMessage(){
+    clearTimeout(hideTimer);
+    const card = document.querySelector('#container .card');
+    if (!card) return;
+    card.classList.remove('show');
+    setTimeout(() => { if (!card.classList.contains('show')) card.remove(); }, 600);
+  }
+
   function renderMessage(data){
     const container = document.getElementById('container');
     container.innerHTML = '';
@@ -159,17 +208,20 @@
     const plainLen = raw.replace(/<[^>]*>/g, '').length;
 
     const type = String(data.type || '').toLowerCase();
-    const platform = type === 'youtube' ? 'youtube' : type === 'twitch' ? 'twitch' : 'other';
-    const platformName = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'Chat');
+    const platformName = type === 'youtube' ? 'YouTube' : type === 'twitch' ? 'Twitch' : (type || 'Chat');
 
     const ev = evLabel(data.event) || evLabel(data.eventType);
     const isSub = !!(data.membership || data.subscriber || data.hasMembership);
     const extra = data.hasDonation ? ('Donazione ' + data.hasDonation) : ev;
+    const tagParts = [platformName];
+    if (isSub) tagParts.push('Abbonato');
+    if (extra) tagParts.push(extra);
 
     const card = document.createElement('div');
-    card.className = 'card' + (isSub ? ' sub' : '');
+    card.className = 'card';
 
-    /* avatar: immagine profilo se disponibile, altrimenti iniziale */
+    /* placca: avatar + nome + piattaforma/abbonato */
+    const plate = document.createElement('div'); plate.className = 'plate';
     const avatar = document.createElement('div'); avatar.className = 'avatar';
     const initial = () => { avatar.textContent = (name[0] || '?').toUpperCase(); };
     if (data.chatimg) {
@@ -179,36 +231,27 @@
       im.onerror = () => { im.remove(); initial(); };
       avatar.appendChild(im);
     } else initial();
-
-    const content = document.createElement('div'); content.className = 'content';
-    const who = document.createElement('div'); who.className = 'who';
+    const pinfo = document.createElement('div'); pinfo.className = 'pinfo';
     const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
-    const meta = document.createElement('div'); meta.className = 'meta';
-    const pf = document.createElement('div'); pf.className = 'platform';
-    const dot = document.createElement('span'); dot.className = 'dot ' + platform;
-    const pfText = document.createElement('span'); pfText.textContent = platformName;
-    pf.appendChild(dot); pf.appendChild(pfText); meta.appendChild(pf);
-    if (isSub) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Abbonato'; meta.appendChild(b); }
-    if (extra) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = extra; meta.appendChild(b); }
-    who.appendChild(nm); who.appendChild(meta);
+    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = tagParts.join(' · ');
+    pinfo.appendChild(nm); pinfo.appendChild(tag);
+    plate.appendChild(avatar); plate.appendChild(pinfo);
 
+    /* messaggio */
+    const msgbox = document.createElement('div'); msgbox.className = 'msgbox';
     const message = document.createElement('div');
     message.className = 'message' + (plainLen > 280 ? ' l4' : plainLen > 150 ? ' l3' : plainLen > 70 ? ' l2' : '');
     renderText(message, raw);
+    msgbox.appendChild(message);
 
-    content.appendChild(who); content.appendChild(message);
-    card.appendChild(avatar); card.appendChild(content);
+    card.appendChild(plate); card.appendChild(msgbox);
     container.appendChild(card);
 
     requestAnimationFrame(() => card.classList.add('show'));
 
-    /* i testi lunghi restano più a lungo: +1s ogni 25 caratteri oltre i 100 */
-    const hold = showtime + Math.max(0, plainLen - 100) * 40;
+    /* nessuna scomparsa automatica: resta finché non lo togli o ne scegli un altro (solo con ?showtime=ms) */
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      card.classList.remove('show');
-      setTimeout(() => { container.innerHTML = ''; }, 450);
-    }, hold);
+    if (showtime > 0) hideTimer = setTimeout(clearMessage, showtime);
   }
 
   /* anteprima: ?demo (abbonato) · ?demo=corto · ?demo=lungo */
@@ -218,7 +261,7 @@
       corto: { chatname: 'Zebrina99', chatmessage: 'Fino alla fine!', type: 'twitch' },
       lungo: { chatname: 'Marco_Bianconero', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento, non copriamo le fasce e quando perdiamo palla in uscita siamo sempre scoperti. Con Locatelli e Thuram più vicini a Yildiz la squadra respira, ma serve qualcuno che giochi tra le linee senza aspettare il tuo passaggio, altrimenti ripetiamo sempre la stessa partita.', type: 'youtube' }
     };
-    renderMessage(sample[d] || { chatname: 'Tifoso_Doc', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'youtube', membership: true });
+    renderMessage(sample[d] || { chatname: 'oldladyshow', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'twitch', membership: true });
   }
 </script>
 

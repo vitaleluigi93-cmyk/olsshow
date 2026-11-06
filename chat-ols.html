@@ -6,17 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f6f1e4;
-    --ink: #14120d;
-    --muted: #6b665a;
+    --paper: #F7F3E8;
+    --ink: #15151A;
+    --plate: #15151A;
+    --name: #F7F3E8;
     --gold: #F4C430;
-    --gold-text: #8a6700;
-    --yt: #e62117;
-    --tw: #8a4fff;
-    --w: 620px;          /* larghezza massima colonna (?width=) */
+    --cut: 18px;
+    --edge: 3px;
+    --w: 780px;          /* larghezza massima colonna (?width=) */
     --scale: 1;          /* scala generale (?scale=) */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,57 +28,81 @@
   }
   #stack {
     position: absolute;
-    left: 28px; bottom: 28px;
+    left: 52px; bottom: 40px;
     width: var(--w);
     display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
-    gap: 10px;
+    gap: 12px;
     transform: scale(var(--scale));
     transform-origin: left bottom;
   }
-  body.right #stack { left: auto; right: 28px; align-items: flex-end; transform-origin: right bottom; }
+  body.right #stack { left: auto; right: 52px; align-items: flex-end; transform-origin: right bottom; }
 
+  /* barra chiara con filo oro da 4px: la targhetta scura occupa tutta l'altezza, quindi nome e messaggio restano centrati */
   .msg {
-    display: flex; align-items: flex-start; gap: 14px;
+    display: flex; align-items: stretch;
     width: fit-content; max-width: 100%;
-    padding: 12px 20px 13px 14px;
+    min-height: 78px;
+    padding: 0 28px 0 0;
     background: var(--paper);
-    border-radius: 8px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.32);
-    animation: in .4s cubic-bezier(.2,.8,.25,1) both;
+    color: var(--ink);
+    border-bottom: 4px solid var(--gold);
+    animation: in .5s cubic-bezier(.3,.7,.2,1) both;
   }
-  .msg.sub { box-shadow: inset 5px 0 0 var(--gold), 0 4px 14px rgba(0,0,0,.32); padding-left: 20px; }
   .msg.out { animation: out .3s ease-in both; }
+
+  .plate {
+    position: relative; isolation: isolate;
+    flex: 0 0 auto;
+    min-width: 250px; max-width: 340px;
+    padding: 10px calc(var(--cut) + 14px) 10px 18px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .plate::before, .plate::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; z-index: -1; }
+  .plate::before {
+    right: calc(var(--edge) * -1); background: var(--gold);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+  }
+  .plate::after {
+    right: 0; background: var(--plate);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+  }
 
   .avatar {
     flex: 0 0 auto;
-    width: 44px; height: 44px; border-radius: 50%;
-    background: var(--gold); color: var(--ink);
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--gold); color: #15151A;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 600; font-size: 22px;
+    font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 30px; padding-top: 3px;
     overflow: hidden;
   }
   .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-  .content { min-width: 0; }
-  .who { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; line-height: 1.1; }
-  .name { font-weight: 600; font-size: 21px; color: var(--ink); }
-  .meta { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 500; color: var(--muted); }
-  .platform { display: flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #888; }
-  .dot.youtube { background: var(--yt); }
-  .dot.twitch { background: var(--tw); }
-  .badge { color: var(--gold-text); font-weight: 600; }
+  .pinfo { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+  .name {
+    font-family: 'Bebas Neue', sans-serif; font-weight: 400;
+    font-size: 32px; line-height: 1.12; letter-spacing: .06em;
+    color: var(--name);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 210px;
+  }
+  .tag {
+    font-size: 11px; font-weight: 400; line-height: 1;
+    letter-spacing: .3em; text-transform: uppercase;
+    color: var(--gold); white-space: nowrap;
+  }
 
   .text {
-    margin-top: 3px;
-    font-weight: 400; font-size: 25px; line-height: 1.25;
+    align-self: center;
+    padding: 14px 0 16px 28px;
+    font-weight: 400; font-size: 26px; line-height: 1.25;
     color: var(--ink);
     overflow-wrap: anywhere;
   }
   .text img { height: 1.35em; width: auto; vertical-align: -0.3em; margin: 0 1px; }
 
-  @keyframes in  { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes in  { from { transform: translateX(-30px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes out { from { opacity: 1; } to { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .msg { animation-duration: .01s; } }
 </style>
 </head>
 <body>
@@ -138,9 +162,13 @@
     const platformName = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'Chat');
     const isSub = !!(m.membership || m.subscriber || m.hasMembership);
 
-    const el = document.createElement('div');
-    el.className = 'msg' + (isSub ? ' sub' : '');
+    const tagParts = [platformName];
+    if (isSub) tagParts.push('Abbonato');
 
+    const el = document.createElement('div');
+    el.className = 'msg';
+
+    const plate = document.createElement('div'); plate.className = 'plate';
     const avatar = document.createElement('div'); avatar.className = 'avatar';
     const initial = () => { avatar.textContent = (name[0] || '?').toUpperCase(); };
     if (m.chatimg) {
@@ -150,21 +178,14 @@
       im.onerror = () => { im.remove(); initial(); };
       avatar.appendChild(im);
     } else initial();
-
-    const content = document.createElement('div'); content.className = 'content';
-    const who = document.createElement('div'); who.className = 'who';
+    const pinfo = document.createElement('div'); pinfo.className = 'pinfo';
     const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
-    const meta = document.createElement('div'); meta.className = 'meta';
-    const pf = document.createElement('div'); pf.className = 'platform';
-    const dot = document.createElement('span'); dot.className = 'dot ' + platform;
-    const pfText = document.createElement('span'); pfText.textContent = platformName;
-    pf.appendChild(dot); pf.appendChild(pfText); meta.appendChild(pf);
-    if (isSub) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Abbonato'; meta.appendChild(b); }
-    who.appendChild(nm); who.appendChild(meta);
+    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = tagParts.join(' · ');
+    pinfo.appendChild(nm); pinfo.appendChild(tag);
+    plate.appendChild(avatar); plate.appendChild(pinfo);
 
     const tx = document.createElement('div'); tx.className = 'text'; renderText(tx, text);
-    content.appendChild(who); content.appendChild(tx);
-    el.appendChild(avatar); el.appendChild(content);
+    el.appendChild(plate); el.appendChild(tx);
     stack.appendChild(el);
 
     while (stack.children.length > MAX) remove(stack.firstElementChild);
