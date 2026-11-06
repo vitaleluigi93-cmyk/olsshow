@@ -110,8 +110,17 @@
   .message img { height:1.25em; width:auto; vertical-align:-0.25em; margin:0 2px; }
 
   @media (prefers-reduced-motion: reduce) { .card { transition-duration: .01s; } }
+  /* nome degli abbonati, logo piattaforma, badge */
+  .namerow { display:flex; align-items:center; gap:12px; min-width:0; }
+  .name.sub { color: var(--subname, var(--gold)); }
+  .badges { display:flex; align-items:center; gap:6px; flex:none; }
+  .badges img { height: 32px; width:auto; display:block; }
+  .tag { display:flex; align-items:center; gap:10px; }
+  .tag .logo { display:inline-flex; flex:none; }
+  .tag .logo svg { height: 1.4em; width:auto; display:block; }
+
   /* tema invertito (?tema=invertito): targhetta chiara, messaggio scuro */
-  body.inv { --paper: #15151A; --ink: #F7F3E8; --plate: #F7F3E8; --name: #15151A; --tag: #7A5B00; }
+  body.inv { --paper: #15151A; --ink: #F7F3E8; --plate: #F7F3E8; --name: #15151A; --tag: #7A5B00; --subname: #8A6700; }
 </style>
 </head>
 <body>
@@ -172,6 +181,28 @@
 
     socket.addEventListener('close', () => { dbg('DISCONNESSO · riprovo tra 3 secondi'); setTimeout(connect, 3000); });
     socket.addEventListener('error', () => { socket.close(); });
+  }
+
+  /* logo piattaforma (SVG incluso nel file) e badge */
+  const LOGOS = {
+    youtube: '<svg viewBox="0 0 24 24" role="img" aria-label="YouTube"><path fill="#FF0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+    twitch:  '<svg viewBox="0 0 24 24" role="img" aria-label="Twitch"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>'
+  };
+  function buildTag(tagEl, type, parts){
+    if (LOGOS[type]) { const l = document.createElement('span'); l.className = 'logo'; l.innerHTML = LOGOS[type]; tagEl.appendChild(l); }
+    if (parts.length) { const t = document.createElement('span'); t.textContent = parts.join(' \u00b7 '); tagEl.appendChild(t); }
+  }
+  /* badge ufficiali inviati da SSN (chatbadges); ?badges=0 per nasconderli, max 3 */
+  function buildBadges(list){
+    if (new URLSearchParams(location.search).get('badges') === '0') return null;
+    const wrap = document.createElement('div'); wrap.className = 'badges';
+    (Array.isArray(list) ? list : []).slice(0, 3).forEach(b => {
+      const src = typeof b === 'string' ? b : (b && b.src);
+      if (!src || !/^(https?:|data:image\/)/i.test(src)) return;
+      const im = document.createElement('img'); im.referrerPolicy = 'no-referrer'; im.src = src; im.onerror = () => im.remove();
+      wrap.appendChild(im);
+    });
+    return wrap.children.length ? wrap : null;
   }
 
   /* testo + sole emote <img>; tutto il resto viene scartato */
@@ -247,7 +278,8 @@
     const ev = evLabel(data.event) || evLabel(data.eventType);
     const isSub = !!(data.membership || data.subscriber || data.hasMembership);
     const extra = data.hasDonation ? ('Donazione ' + data.hasDonation) : ev;
-    const tagParts = [platformName];
+    const tagParts = [];
+    if (!LOGOS[type]) tagParts.push(platformName);
     if (isSub) tagParts.push('Abbonato');
     if (extra) tagParts.push(extra);
 
@@ -268,8 +300,11 @@
     } else initial();
     const pinfo = document.createElement('div'); pinfo.className = 'pinfo';
     const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
-    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = tagParts.join(' · ');
-    pinfo.appendChild(nm); pinfo.appendChild(tag);
+    const tag = document.createElement('div'); tag.className = 'tag'; buildTag(tag, type, tagParts);
+    if (isSub) nm.classList.add('sub');
+    const row = document.createElement('div'); row.className = 'namerow'; row.appendChild(nm);
+    const bd = buildBadges(data.chatbadges); if (bd) row.appendChild(bd);
+    pinfo.appendChild(row); pinfo.appendChild(tag);
     plate.appendChild(avatar); plate.appendChild(pinfo);
 
     /* messaggio */
@@ -297,7 +332,7 @@
       corto: { chatname: 'Zebrina99', chatmessage: 'Fino alla fine!', type: 'twitch' },
       lungo: { chatname: 'Marco_Bianconero', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento, non copriamo le fasce e quando perdiamo palla in uscita siamo sempre scoperti. Con Locatelli e Thuram più vicini a Yildiz la squadra respira, ma serve qualcuno che giochi tra le linee senza aspettare il tuo passaggio, altrimenti ripetiamo sempre la stessa partita.', type: 'youtube' }
     };
-    renderMessage(sample[d] || { chatname: 'oldladyshow', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'twitch', membership: true });
+    renderMessage(sample[d] || { chatname: 'oldladyshow', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'twitch', membership: true, chatbadges: ['data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2036%2036%27%3E%3Crect%20width%3D%2736%27%20height%3D%2736%27%20rx%3D%276%27%20fill%3D%27%239146FF%27/%3E%3Cpath%20d%3D%27M18%207l3.2%207%207.6.8-5.7%205.1%201.7%207.5L18%2023.4%2011.2%2027.4l1.7-7.5-5.7-5.1%207.6-.8z%27%20fill%3D%27%23fff%27/%3E%3C/svg%3E'] });
   }
 </script>
 
