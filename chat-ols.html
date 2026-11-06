@@ -6,15 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
+    --paper: #f6f1e4;
+    --ink: #14120d;
+    --muted: #6b665a;
     --gold: #F4C430;
-    --gold-deep: #c3940c;
-    --ivory: #f7f2e4;
-    --ink: #0b0b0b;
-    --w: 560px;          /* larghezza colonna (override: ?width=) */
-    --scale: 1;          /* scala generale (override: ?scale=) */
+    --gold-text: #8a6700;
+    --yt: #e62117;
+    --tw: #8a4fff;
+    --w: 620px;          /* larghezza massima colonna (?width=) */
+    --scale: 1;          /* scala generale (?scale=) */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -25,99 +28,57 @@
   }
   #stack {
     position: absolute;
-    left: 24px; bottom: 24px;
+    left: 28px; bottom: 28px;
     width: var(--w);
-    display: flex; flex-direction: column; justify-content: flex-end;
-    gap: 12px;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+    gap: 10px;
     transform: scale(var(--scale));
     transform-origin: left bottom;
   }
-  body.right #stack { left: auto; right: 24px; transform-origin: right bottom; }
+  body.right #stack { left: auto; right: 28px; align-items: flex-end; transform-origin: right bottom; }
 
   .msg {
-    position: relative;
-    display: flex;
-    background: var(--ivory);
-    border: 4px solid var(--gold);
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px var(--ink), 0 0 22px rgba(244,196,48,.55), 0 8px 18px rgba(0,0,0,.55);
-    animation: slideIn .45s cubic-bezier(.2,.9,.25,1) both;
+    display: flex; align-items: flex-start; gap: 14px;
+    width: fit-content; max-width: 100%;
+    padding: 12px 20px 13px 14px;
+    background: var(--paper);
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.32);
+    animation: in .4s cubic-bezier(.2,.8,.25,1) both;
+  }
+  .msg.sub { box-shadow: inset 5px 0 0 var(--gold), 0 4px 14px rgba(0,0,0,.32); padding-left: 20px; }
+  .msg.out { animation: out .3s ease-in both; }
+
+  .avatar {
+    flex: 0 0 auto;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--gold); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 22px;
     overflow: hidden;
   }
-  .msg.out { animation: slideOut .35s ease-in both; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-  /* banda laterale pinstripe bianconera */
-  .stripe {
-    flex: 0 0 14px;
-    background: repeating-linear-gradient(135deg, #0b0b0b 0 5px, #ffffff 5px 10px);
-    border-right: 3px solid var(--gold);
-  }
-  .body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-  .head {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--ink);
-    padding: 5px 12px 5px 10px;
-    position: relative;
-  }
-  .head::after { /* filo oro sotto la testata */
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-    background: linear-gradient(90deg, var(--gold), transparent 85%);
-  }
-  .avatar {
-    width: 30px; height: 30px; border-radius: 50%;
-    border: 2px solid var(--gold);
-    background: #222 center/cover no-repeat;
-    flex: 0 0 auto;
-  }
-  .name {
-    font-family: 'Anton', sans-serif;
-    font-size: 24px; line-height: 1;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--gold);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    padding-top: 2px;
-  }
-  .chip {
-    margin-left: auto;
-    flex: 0 0 auto;
-    font-family: 'Oswald', sans-serif; font-weight: 600;
-    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
-    color: #fff; padding: 3px 8px 2px; border-radius: 2px;
-  }
-  .chip.youtube { background: #e62117; }
-  .chip.twitch  { background: #7b3fe4; }
-  .chip.other   { background: #444; }
+  .content { min-width: 0; }
+  .who { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; line-height: 1.1; }
+  .name { font-weight: 600; font-size: 21px; color: var(--ink); }
+  .meta { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 500; color: var(--muted); }
+  .platform { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #888; }
+  .dot.youtube { background: var(--yt); }
+  .dot.twitch { background: var(--tw); }
+  .badge { color: var(--gold-text); font-weight: 600; }
 
   .text {
-    font-weight: 500;
-    font-size: 26px; line-height: 1.22;
+    margin-top: 3px;
+    font-weight: 400; font-size: 25px; line-height: 1.25;
     color: var(--ink);
-    padding: 8px 14px 10px;
-    word-wrap: break-word; overflow-wrap: anywhere;
+    overflow-wrap: anywhere;
   }
-  .text img {
-    height: 1.5em; width: auto; vertical-align: -0.35em; margin: 0 1px;
-  }
+  .text img { height: 1.35em; width: auto; vertical-align: -0.3em; margin: 0 1px; }
 
-  /* membro / sub / mod: pannello oro */
-  .msg.vip { background: var(--gold); border-color: #fff3bf; }
-  .msg.vip .name { color: #fff; }
-  .msg.vip .head { background: #1a1400; }
-  .msg.vip .tag {
-    font-family: 'Anton', sans-serif; font-size: 13px; letter-spacing: .14em;
-    background: var(--gold); color: var(--ink); padding: 3px 7px 1px; border-radius: 2px;
-  }
-  .tag { display: none; }
-  .msg.vip .tag { display: inline-block; }
-
-  @keyframes slideIn  { from { transform: translateX(-60px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes slideOut { from { transform: none; opacity: 1; } to { transform: translateX(-60px); opacity: 0; } }
-  body.right .msg { animation-name: slideInR; }
-  body.right .msg.out { animation-name: slideOutR; }
-  @keyframes slideInR  { from { transform: translateX(60px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes slideOutR { from { transform: none; opacity: 1; } to { transform: translateX(60px); opacity: 0; } }
+  @keyframes in  { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes out { from { opacity: 1; } to { opacity: 0; } }
 </style>
 </head>
 <body>
@@ -157,7 +118,7 @@
   function remove(el) {
     if (!el || el.classList.contains('out')) return;
     el.classList.add('out');
-    setTimeout(() => el.remove(), 380);
+    setTimeout(() => el.remove(), 330);
   }
 
   function addMessage(m) {
@@ -174,28 +135,36 @@
 
     const type = (m.type || '').toLowerCase();
     const platform = type === 'youtube' ? 'youtube' : type === 'twitch' ? 'twitch' : 'other';
-    const vip = !!(m.membership || m.subscriber || m.moderator || m.mod || m.hasMembership);
+    const platformName = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'Chat');
+    const isSub = !!(m.membership || m.subscriber || m.hasMembership);
 
     const el = document.createElement('div');
-    el.className = 'msg' + (vip ? ' vip' : '');
+    el.className = 'msg' + (isSub ? ' sub' : '');
 
-    const stripe = document.createElement('div'); stripe.className = 'stripe';
-    const body = document.createElement('div'); body.className = 'body';
-    const head = document.createElement('div'); head.className = 'head';
-
+    const avatar = document.createElement('div'); avatar.className = 'avatar';
+    const initial = () => { avatar.textContent = (name[0] || '?').toUpperCase(); };
     if (m.chatimg) {
-      const av = document.createElement('div'); av.className = 'avatar';
-      av.style.backgroundImage = 'url("' + String(m.chatimg).replace(/"/g, '%22') + '")';
-      head.appendChild(av);
-    }
-    const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name; head.appendChild(nm);
-    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = m.membership ? 'MEMBRO' : (m.moderator || m.mod ? 'MOD' : 'SUB'); head.appendChild(tag);
-    const chip = document.createElement('div'); chip.className = 'chip ' + platform;
-    chip.textContent = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'chat'); head.appendChild(chip);
+      const im = document.createElement('img');
+      im.referrerPolicy = 'no-referrer';
+      im.src = m.chatimg;
+      im.onerror = () => { im.remove(); initial(); };
+      avatar.appendChild(im);
+    } else initial();
+
+    const content = document.createElement('div'); content.className = 'content';
+    const who = document.createElement('div'); who.className = 'who';
+    const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
+    const meta = document.createElement('div'); meta.className = 'meta';
+    const pf = document.createElement('div'); pf.className = 'platform';
+    const dot = document.createElement('span'); dot.className = 'dot ' + platform;
+    const pfText = document.createElement('span'); pfText.textContent = platformName;
+    pf.appendChild(dot); pf.appendChild(pfText); meta.appendChild(pf);
+    if (isSub) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Abbonato'; meta.appendChild(b); }
+    who.appendChild(nm); who.appendChild(meta);
 
     const tx = document.createElement('div'); tx.className = 'text'; renderText(tx, text);
-    body.appendChild(head); body.appendChild(tx);
-    el.appendChild(stripe); el.appendChild(body);
+    content.appendChild(who); content.appendChild(tx);
+    el.appendChild(avatar); el.appendChild(content);
     stack.appendChild(el);
 
     while (stack.children.length > MAX) remove(stack.firstElementChild);
@@ -227,7 +196,7 @@
   if (q.has('demo')) {
     const demo = [
       { chatname: 'Marco_Bianconero', chatmessage: 'Che partita ragazzi, Yildiz ha spaccato tutto!', type: 'youtube' },
-      { chatname: 'Zebrina99', chatmessage: 'Fino alla fine forza Juve 🖤🤍', type: 'twitch', subscriber: true },
+      { chatname: 'Zebrina99', chatmessage: 'Fino alla fine forza Juve!', type: 'twitch', subscriber: true },
       { chatname: 'Tifoso_Doc', chatmessage: 'Secondo me Spalletti deve cambiare modulo, il centrocampo è troppo lento e non copriamo le fasce', type: 'youtube', membership: true },
       { chatname: 'Antimo_fan', chatmessage: 'Pagelle a fine partita? 7 a Locatelli', type: 'twitch' },
     ];

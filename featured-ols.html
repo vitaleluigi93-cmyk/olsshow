@@ -5,126 +5,86 @@
 <title>OLS Featured Chat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
+    --paper: #f6f1e4;
+    --ink: #14120d;
+    --muted: #6b665a;
     --gold: #F4C430;
-    --ivory: #f7f2e4;
-    --ink: #0b0b0b;
+    --gold-text: #8a6700;
+    --yt: #e62117;
+    --tw: #8a4fff;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
 
   html, body {
-    width:100vw;
-    height:100vh;
+    width:100vw; height:100vh;
     background: transparent;
     overflow: hidden;
-    font-family: 'Oswald', 'Arial Narrow', -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Oswald', 'Arial Narrow', sans-serif;
   }
 
-  /* ancorato in basso, centrato orizzontalmente */
+  /* ancorato in basso al centro; la carta si adatta al contenuto fino a 84% della larghezza */
   body {
-    display:flex;
-    align-items:flex-end;
-    justify-content:center;
-    padding-bottom: 48px;
+    display:flex; align-items:flex-end; justify-content:center;
+    padding-bottom: 56px;
   }
-
-  #container {
-    width: 90vw;
-    max-width: 1400px;
-    display:flex;
-    justify-content:center;
-  }
+  #container { display:flex; justify-content:center; width:100vw; }
 
   .card {
-    position: relative;
-    display: flex;
-    width: 100%;
-    max-height: 42vh;
-    background: var(--ivory);
-    border: 5px solid var(--gold);
-    border-radius: 6px;
-    box-shadow: 0 0 0 3px var(--ink), 0 0 30px rgba(244,196,48,.6), 0 10px 30px rgba(0,0,0,.6);
-    overflow: hidden;
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity .35s ease-out, transform .35s cubic-bezier(.2,.9,.25,1);
+    display:flex; align-items:flex-start; gap:28px;
+    width: fit-content;
+    min-width: 560px;
+    max-width: 84vw;
+    max-height: 44vh;
+    padding: 26px 44px 28px 30px;
+    background: var(--paper);
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.38);
+    opacity:0; transform: translateY(24px);
+    transition: opacity .4s ease-out, transform .4s cubic-bezier(.2,.8,.25,1);
   }
-  .card.show { opacity: 1; transform: translateY(0); }
-
-  /* banda pinstripe bianconera sul lato sinistro */
-  .stripe {
-    flex: 0 0 22px;
-    background: repeating-linear-gradient(135deg, #0b0b0b 0 7px, #ffffff 7px 14px);
-    border-right: 4px solid var(--gold);
-  }
-
-  .body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-  .head {
-    position: relative;
-    display: flex; align-items: center; gap: 14px;
-    background: var(--ink);
-    padding: 10px 20px 8px 16px;
-  }
-  .head::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-    background: linear-gradient(90deg, var(--gold), transparent 85%);
-  }
+  .card.show { opacity:1; transform:none; }
+  /* filo oro a sinistra: solo per gli abbonati */
+  .card.sub { box-shadow: inset 9px 0 0 var(--gold), 0 8px 28px rgba(0,0,0,.38); padding-left: 40px; }
 
   .avatar {
     flex: 0 0 auto;
-    width: 54px; height: 54px;
-    border-radius: 50%;
-    border: 3px solid var(--gold);
-    background: #222 center/cover no-repeat;
+    width: 92px; height: 92px; border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    font-weight: 600; font-size: 46px;
+    overflow: hidden;
   }
+  .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
 
-  .name {
-    font-family: 'Anton', 'Oswald', sans-serif;
-    font-size: 38px; line-height: 1;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--gold);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    padding-top: 3px;
-  }
+  .content { min-width:0; display:flex; flex-direction:column; gap:6px; }
 
-  .tags { margin-left: auto; display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
-  .tag {
-    font-family: 'Anton', 'Oswald', sans-serif;
-    font-size: 18px; letter-spacing: .14em; text-transform: uppercase;
-    background: var(--gold); color: var(--ink);
-    padding: 5px 10px 3px; border-radius: 3px;
-  }
-  .chip {
-    font-weight: 600; font-size: 16px; letter-spacing: .12em; text-transform: uppercase;
-    color: #fff; padding: 5px 11px 3px; border-radius: 3px;
-  }
-  .chip.youtube { background: #e62117; }
-  .chip.twitch  { background: #7b3fe4; }
-  .chip.other   { background: #444; }
+  .who { display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; }
+  .name { font-weight:600; font-size:36px; line-height:1.1; color:var(--ink); }
+  .meta { display:flex; align-items:center; gap:16px; font-size:24px; font-weight:500; color:var(--muted); }
+  .platform { display:flex; align-items:center; gap:8px; }
+  .dot { width:11px; height:11px; border-radius:50%; background:#888; }
+  .dot.youtube { background:var(--yt); }
+  .dot.twitch { background:var(--tw); }
+  .badge { color: var(--gold-text); font-weight:600; }
 
   .message {
-    font-weight: 500;
-    font-size: 40px; line-height: 1.25;
     color: var(--ink);
-    padding: 14px 24px 18px;
-    word-wrap: break-word; overflow-wrap: anywhere;
+    font-weight: 400;
+    line-height: 1.28;
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
-    overflow-y: auto;
+    overflow: hidden;
+    font-size: 58px;
   }
-  .message img { height: 1.4em; width: auto; vertical-align: -0.3em; margin: 0 2px; }
-
-  /* membri / sub / mod / donazioni: pannello oro */
-  .card.vip { background: var(--gold); border-color: #fff3bf; }
-  .card.vip .name { color: #fff; }
-  .card.vip .head { background: #1a1400; }
-
-  .message::-webkit-scrollbar { width: 6px; }
-  .message::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 3px; }
-  .message::-webkit-scrollbar-track { background: transparent; }
+  /* dimensione adattiva: i testi lunghi si allargano e si rimpiccioliscono, non si allungano in altezza */
+  .message.l2 { font-size: 50px; }
+  .message.l3 { font-size: 42px; }
+  .message.l4 { font-size: 36px; }
+  .message img { height:1.25em; width:auto; vertical-align:-0.25em; margin:0 2px; }
 </style>
 </head>
 <body>
@@ -135,22 +95,22 @@
   const urlParams = new URLSearchParams(window.location.search);
   const session = urlParams.get('session') || 'xMYd3nZK7g';
   const channel = parseInt(urlParams.get('channel') || '4', 10);
-  const showtime = parseInt(urlParams.get('showtime')) || 12000; // ms, default 12s
+  const showtime = parseInt(urlParams.get('showtime')) || 12000; // ms; i messaggi lunghi restano di più
 
   let socket = null;
   let hideTimer = null;
 
   /* etichette in italiano per eventi e donazioni */
-  const LABELS = {
-    donation: 'DONAZIONE', donations: 'DONAZIONE', tip: 'DONAZIONE',
-    subscription: 'ABBONAMENTO', subscriber: 'SUB', sub: 'SUB', resub: 'RINNOVO',
-    membership: 'MEMBRO', member: 'MEMBRO',
-    giftsub: 'SUB REGALATO', giftedsub: 'SUB REGALATO', gift: 'REGALO',
-    follow: 'NUOVO FOLLOWER', follower: 'NUOVO FOLLOWER',
-    raid: 'RAID', cheer: 'BIT', bits: 'BIT',
-    superchat: 'SUPER CHAT', supersticker: 'SUPER STICKER'
+  const EVENT_LABELS = {
+    donation: 'Donazione', donations: 'Donazione', tip: 'Donazione',
+    subscription: 'Nuovo abbonato', subscriber: 'Nuovo abbonato', sub: 'Nuovo abbonato',
+    resub: 'Abbonato', membership: 'Nuovo abbonato', member: 'Nuovo abbonato',
+    giftsub: 'Abbonamento regalato', giftedsub: 'Abbonamento regalato', gift: 'Abbonamento regalato',
+    follow: 'Nuovo follower', follower: 'Nuovo follower',
+    raid: 'Raid', cheer: 'Bit', bits: 'Bit',
+    superchat: 'Super Chat', supersticker: 'Super Sticker'
   };
-  const label = k => LABELS[String(k || '').toLowerCase().replace(/[\s_-]/g, '')] || null;
+  const evLabel = k => EVENT_LABELS[String(k || '').toLowerCase().replace(/[\s_-]/g, '')] || null;
 
   connect();
 
@@ -163,24 +123,15 @@
 
     socket.addEventListener('message', (event) => {
       let data;
-      try {
-        data = JSON.parse(event.data);
-      } catch(e){ return; }
-
+      try { data = JSON.parse(event.data); } catch(e){ return; }
       if (data && data.overlayNinja) data = data.overlayNinja;
       // ignora messaggi di sistema / join ack
       if (!data || (!data.chatmessage && !data.chatname)) return;
-
       renderMessage(data);
     });
 
-    socket.addEventListener('close', () => {
-      setTimeout(connect, 3000); // riconnessione automatica
-    });
-
-    socket.addEventListener('error', () => {
-      socket.close();
-    });
+    socket.addEventListener('close', () => { setTimeout(connect, 3000); });
+    socket.addEventListener('error', () => { socket.close(); });
   }
 
   /* testo + sole emote <img>; tutto il resto viene scartato */
@@ -203,68 +154,71 @@
     const container = document.getElementById('container');
     container.innerHTML = '';
 
+    const name = String(data.chatname || '').trim();
+    const raw = String(data.chatmessage || '');
+    const plainLen = raw.replace(/<[^>]*>/g, '').length;
+
     const type = String(data.type || '').toLowerCase();
     const platform = type === 'youtube' ? 'youtube' : type === 'twitch' ? 'twitch' : 'other';
+    const platformName = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'Chat');
 
-    /* etichette speciali (evento / donazione / ruolo) */
-    const tags = [];
-    const ev = label(data.event) || label(data.eventType);
-    if (ev) tags.push(ev);
-    if (data.hasDonation) tags.push('DONAZIONE ' + data.hasDonation);
-    if (data.membership) tags.push('MEMBRO');
-    else if (data.subscriber) tags.push('SUB');
-    if (data.moderator || data.mod) tags.push('MOD');
-    const vip = tags.length > 0;
+    const ev = evLabel(data.event) || evLabel(data.eventType);
+    const isSub = !!(data.membership || data.subscriber || data.hasMembership);
+    const extra = data.hasDonation ? ('Donazione ' + data.hasDonation) : ev;
 
     const card = document.createElement('div');
-    card.className = 'card' + (vip ? ' vip' : '');
+    card.className = 'card' + (isSub ? ' sub' : '');
 
-    const stripe = document.createElement('div'); stripe.className = 'stripe';
-    const body = document.createElement('div'); body.className = 'body';
-    const head = document.createElement('div'); head.className = 'head';
-
+    /* avatar: immagine profilo se disponibile, altrimenti iniziale */
+    const avatar = document.createElement('div'); avatar.className = 'avatar';
+    const initial = () => { avatar.textContent = (name[0] || '?').toUpperCase(); };
     if (data.chatimg) {
-      const avatar = document.createElement('div');
-      avatar.className = 'avatar';
-      avatar.style.backgroundImage = 'url("' + String(data.chatimg).replace(/"/g, '%22') + '")';
-      head.appendChild(avatar);
-    }
+      const im = document.createElement('img');
+      im.referrerPolicy = 'no-referrer';
+      im.src = data.chatimg;
+      im.onerror = () => { im.remove(); initial(); };
+      avatar.appendChild(im);
+    } else initial();
 
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = data.chatname || '';
-    head.appendChild(name);
-
-    const right = document.createElement('div'); right.className = 'tags';
-    tags.forEach(t => { const e = document.createElement('div'); e.className = 'tag'; e.textContent = t; right.appendChild(e); });
-    const chip = document.createElement('div');
-    chip.className = 'chip ' + platform;
-    chip.textContent = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'chat');
-    right.appendChild(chip);
-    head.appendChild(right);
+    const content = document.createElement('div'); content.className = 'content';
+    const who = document.createElement('div'); who.className = 'who';
+    const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name;
+    const meta = document.createElement('div'); meta.className = 'meta';
+    const pf = document.createElement('div'); pf.className = 'platform';
+    const dot = document.createElement('span'); dot.className = 'dot ' + platform;
+    const pfText = document.createElement('span'); pfText.textContent = platformName;
+    pf.appendChild(dot); pf.appendChild(pfText); meta.appendChild(pf);
+    if (isSub) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Abbonato'; meta.appendChild(b); }
+    if (extra) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = extra; meta.appendChild(b); }
+    who.appendChild(nm); who.appendChild(meta);
 
     const message = document.createElement('div');
-    message.className = 'message';
-    renderText(message, data.chatmessage || '');
+    message.className = 'message' + (plainLen > 280 ? ' l4' : plainLen > 150 ? ' l3' : plainLen > 70 ? ' l2' : '');
+    renderText(message, raw);
 
-    body.appendChild(head);
-    body.appendChild(message);
-    card.appendChild(stripe);
-    card.appendChild(body);
+    content.appendChild(who); content.appendChild(message);
+    card.appendChild(avatar); card.appendChild(content);
     container.appendChild(card);
 
     requestAnimationFrame(() => card.classList.add('show'));
 
+    /* i testi lunghi restano più a lungo: +1s ogni 25 caratteri oltre i 100 */
+    const hold = showtime + Math.max(0, plainLen - 100) * 40;
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
       card.classList.remove('show');
-      setTimeout(() => { container.innerHTML = ''; }, 400);
-    }, showtime);
+      setTimeout(() => { container.innerHTML = ''; }, 450);
+    }, hold);
   }
 
-  /* anteprima: ?demo */
+  /* anteprima: ?demo (abbonato) · ?demo=corto · ?demo=lungo */
   if (urlParams.has('demo')) {
-    renderMessage({ chatname: 'Tifoso_Doc', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce!', type: 'youtube', membership: true });
+    const d = urlParams.get('demo');
+    const sample = {
+      corto: { chatname: 'Zebrina99', chatmessage: 'Fino alla fine!', type: 'twitch' },
+      lungo: { chatname: 'Marco_Bianconero', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento, non copriamo le fasce e quando perdiamo palla in uscita siamo sempre scoperti. Con Locatelli e Thuram più vicini a Yildiz la squadra respira, ma serve qualcuno che giochi tra le linee senza aspettare il tuo passaggio, altrimenti ripetiamo sempre la stessa partita.', type: 'youtube' }
+    };
+    renderMessage(sample[d] || { chatname: 'Tifoso_Doc', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'youtube', membership: true });
   }
 </script>
 
