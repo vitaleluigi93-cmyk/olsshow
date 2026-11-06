@@ -36,7 +36,7 @@
   .card {
     display:flex; align-items:stretch;
     width: fit-content;
-    max-width: 84vw;
+    max-width: calc(100vw - 104px);   /* fino al margine destro (52px, simmetrico a sinistra) */
     min-height: 156px;
     padding: 0 56px 0 0;
     background: var(--paper);
@@ -50,7 +50,7 @@
   .plate {
     position: relative; isolation: isolate;
     flex: 0 0 auto;
-    min-width: 380px; max-width: 560px;
+    min-width: 380px; max-width: 640px;
     padding: 24px calc(var(--cut) + 26px) 24px 36px;
     display:flex; align-items:center; justify-content:center; gap:24px;
   }
@@ -73,7 +73,9 @@
     font-family: 'Bebas Neue', sans-serif; font-weight:400; font-size: 52px; padding-top: 4px;
     overflow: hidden;
   }
-  .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+  .avatar { position: relative; }
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .avatar.ok { background: transparent; }
 
   .pinfo { min-width:0; display:flex; flex-direction:column; justify-content:center; gap:9px; }
   .name {
@@ -81,12 +83,12 @@
     font-size: 54px; line-height: 1.1; letter-spacing: .06em;
     color: var(--name);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 380px;
+    max-width: 460px;
   }
   .tag {
     font-size: 17px; font-weight:400; line-height: 1;
     letter-spacing: .34em; text-transform: uppercase;
-    color: var(--gold);
+    color: var(--tag, var(--gold));
     white-space: nowrap;
   }
 
@@ -107,6 +109,8 @@
   .message img { height:1.25em; width:auto; vertical-align:-0.25em; margin:0 2px; }
 
   @media (prefers-reduced-motion: reduce) { .card { transition-duration: .01s; } }
+  /* tema invertito (?tema=invertito): targhetta chiara, messaggio scuro */
+  body.inv { --paper: #15151A; --ink: #F7F3E8; --plate: #F7F3E8; --name: #15151A; --tag: #7A5B00; }
 </style>
 </head>
 <body>
@@ -114,6 +118,7 @@
 <div id="container"></div>
 
 <script>
+  if ((new URLSearchParams(location.search).get('tema') || '') === 'invertito') document.body.classList.add('inv');
   const urlParams = new URLSearchParams(window.location.search);
   const session = urlParams.get('session') || 'xMYd3nZK7g';
   const channel = parseInt(urlParams.get('channel') || '2', 10); // 2 = messaggi scelti nel dock (4 = tutta la chat)
@@ -243,6 +248,7 @@
       const im = document.createElement('img');
       im.referrerPolicy = 'no-referrer';
       im.src = data.chatimg;
+      im.onload = () => avatar.classList.add('ok');
       im.onerror = () => { im.remove(); initial(); };
       avatar.appendChild(im);
     } else initial();
