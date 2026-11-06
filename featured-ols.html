@@ -15,6 +15,7 @@
     --gold: #F4C430;
     --cut: 34px;            /* taglio obliquo sul lato destro della targhetta */
     --edge: 5px;            /* spessore del filo oro sul taglio */
+    --maxh: 230px;          /* altezza massima della barra (?maxh=): sotto, così non copre le cam */
   }
   * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -28,7 +29,7 @@
   /* ancorato in basso a sinistra (stesso margine di 52px del banner) */
   body {
     display:flex; align-items:flex-end; justify-content:flex-start;
-    padding: 0 0 56px 52px;
+    padding: 0 0 40px 52px;
   }
   #container { display:flex; justify-content:flex-start; }
 
@@ -37,7 +38,7 @@
     display:flex; align-items:stretch;
     width: fit-content;
     max-width: calc(100vw - 104px);   /* fino al margine destro (52px, simmetrico a sinistra) */
-    min-height: 156px;
+    min-height: 124px;
     padding: 0 56px 0 0;
     background: var(--paper);
     color: var(--ink);
@@ -50,9 +51,9 @@
   .plate {
     position: relative; isolation: isolate;
     flex: 0 0 auto;
-    min-width: 380px; max-width: 640px;
-    padding: 24px calc(var(--cut) + 26px) 24px 36px;
-    display:flex; align-items:center; justify-content:center; gap:24px;
+    min-width: 340px; max-width: 600px;
+    padding: 16px calc(var(--cut) + 24px) 16px 32px;
+    display:flex; align-items:center; justify-content:center; gap:20px;
   }
   .plate::before, .plate::after { content:""; position:absolute; top:0; bottom:0; left:0; z-index:-1; }
   /* filo oro lungo il taglio obliquo */
@@ -67,10 +68,10 @@
 
   .avatar {
     flex: 0 0 auto;
-    width: 80px; height: 80px; border-radius: 50%;
+    width: 66px; height: 66px; border-radius: 50%;
     background: var(--gold); color: #15151A;
     display:flex; align-items:center; justify-content:center;
-    font-family: 'Bebas Neue', sans-serif; font-weight:400; font-size: 52px; padding-top: 4px;
+    font-family: 'Bebas Neue', sans-serif; font-weight:400; font-size: 44px; padding-top: 4px;
     overflow: hidden;
   }
   .avatar { position: relative; }
@@ -80,32 +81,32 @@
   .pinfo { min-width:0; display:flex; flex-direction:column; justify-content:center; gap:9px; }
   .name {
     font-family: 'Bebas Neue', sans-serif; font-weight:400;
-    font-size: 54px; line-height: 1.1; letter-spacing: .06em;
+    font-size: 46px; line-height: 1.1; letter-spacing: .06em;
     color: var(--name);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 460px;
   }
   .tag {
-    font-size: 17px; font-weight:400; line-height: 1;
-    letter-spacing: .34em; text-transform: uppercase;
+    font-size: 15px; font-weight:400; line-height: 1;
+    letter-spacing: .32em; text-transform: uppercase;
     color: var(--tag, var(--gold));
     white-space: nowrap;
   }
 
-  .msgbox { flex: 1; min-width: 0; display:flex; align-items:center; padding: 28px 0 28px 44px; }
+  .msgbox { flex: 1; min-width: 0; display:flex; align-items:center; padding: 14px 0 16px 40px; }
   .message {
     color: var(--ink);
     font-weight: 400;
     line-height: 1.28;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
-    max-height: 40vh; overflow: hidden;
-    font-size: 54px;
+    max-height: var(--maxh); overflow: hidden;
+    font-size: 46px;
   }
   /* dimensione adattiva: i testi lunghi si allargano e si rimpiccioliscono, non si allungano in altezza */
-  .message.l2 { font-size: 48px; }
-  .message.l3 { font-size: 40px; }
-  .message.l4 { font-size: 34px; }
+  .message.l2 { font-size: 42px; }
+  .message.l3 { font-size: 36px; }
+  .message.l4 { font-size: 30px; }
   .message img { height:1.25em; width:auto; vertical-align:-0.25em; margin:0 2px; }
 
   @media (prefers-reduced-motion: reduce) { .card { transition-duration: .01s; } }
@@ -123,6 +124,8 @@
   const session = urlParams.get('session') || 'xMYd3nZK7g';
   const channel = parseInt(urlParams.get('channel') || '2', 10); // 2 = messaggi scelti nel dock (4 = tutta la chat)
   const showtime = parseInt(urlParams.get('showtime')) || 0;     // ms; 0 = resta finché non lo togli da SSN
+  if (urlParams.get('maxh')) document.documentElement.style.setProperty('--maxh', parseInt(urlParams.get('maxh'), 10) + 'px');
+  const MAXH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--maxh')) || 230;
 
   let socket = null;
   let hideTimer = null;
@@ -219,6 +222,17 @@
     setTimeout(() => { if (!card.classList.contains('show')) card.remove(); }, 600);
   }
 
+  /* riduce il testo, se serve, perché la barra non superi mai l'altezza massima (così non copre le cam) */
+  function fitCard(){
+    const card = document.querySelector('#container .card');
+    if (!card) return;
+    const m = card.querySelector('.message');
+    m.style.fontSize = '';
+    let fs = parseFloat(getComputedStyle(m).fontSize);
+    while (card.offsetHeight > MAXH() && fs > 22) { fs -= 2; m.style.fontSize = fs + 'px'; }
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitCard);
+
   function renderMessage(data){
     const container = document.getElementById('container');
     container.innerHTML = '';
@@ -267,6 +281,7 @@
 
     card.appendChild(plate); card.appendChild(msgbox);
     container.appendChild(card);
+    fitCard();
 
     requestAnimationFrame(() => card.classList.add('show'));
 
