@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <title>OLS Featured Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --gold: #F4C430;
+    --ivory: #f7f2e4;
+    --ink: #0b0b0b;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
 
   html, body {
@@ -31,86 +39,92 @@
 
   .card {
     position: relative;
-    display:flex;
-    align-items:flex-start;
-    gap: 18px;
-    background: #0a0a0a;
-    border: 2px solid #C5A253;
-    border-radius: 6px;
-    padding: 18px 28px 18px 24px;
+    display: flex;
+    width: 100%;
     max-height: 42vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+    background: var(--ivory);
+    border: 5px solid var(--gold);
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px var(--ink), 0 0 30px rgba(244,196,48,.6), 0 10px 30px rgba(0,0,0,.6);
+    overflow: hidden;
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+    transform: translateY(40px);
+    transition: opacity .35s ease-out, transform .35s cubic-bezier(.2,.9,.25,1);
+  }
+  .card.show { opacity: 1; transform: translateY(0); }
+
+  /* banda pinstripe bianconera sul lato sinistro */
+  .stripe {
+    flex: 0 0 22px;
+    background: repeating-linear-gradient(135deg, #0b0b0b 0 7px, #ffffff 7px 14px);
+    border-right: 4px solid var(--gold);
   }
 
-  .card.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  .body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-  /* dettaglio pinstripe sul lato sinistro */
-  .card::before {
-    content:"";
-    position:absolute;
-    left:0; top:0; bottom:0;
-    width: 6px;
-    background: repeating-linear-gradient(
-      to bottom,
-      #C5A253 0px, #C5A253 3px,
-      transparent 3px, transparent 6px
-    );
-    border-radius: 6px 0 0 6px;
+  .head {
+    position: relative;
+    display: flex; align-items: center; gap: 14px;
+    background: var(--ink);
+    padding: 10px 20px 8px 16px;
+  }
+  .head::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), transparent 85%);
   }
 
   .avatar {
     flex: 0 0 auto;
-    width: 52px;
-    height: 52px;
-    border-radius: 4px;
-    border: 2px solid #C5A253;
-    background-size: cover;
-    background-position: center;
-    background-color:#1a1a1a;
-  }
-
-  .body-text {
-    display:flex;
-    flex-direction:column;
-    gap: 6px;
-    min-width: 0;
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    border: 3px solid var(--gold);
+    background: #222 center/cover no-repeat;
   }
 
   .name {
-    color: #C5A253;
-    font-weight: 700;
+    font-family: 'Anton', 'Oswald', sans-serif;
+    font-size: 38px; line-height: 1;
+    letter-spacing: .06em;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 22px;
-    display:flex;
-    align-items:center;
-    gap:8px;
+    color: var(--gold);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding-top: 3px;
   }
 
-  .source-icon {
-    width:18px; height:18px;
+  .tags { margin-left: auto; display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+  .tag {
+    font-family: 'Anton', 'Oswald', sans-serif;
+    font-size: 18px; letter-spacing: .14em; text-transform: uppercase;
+    background: var(--gold); color: var(--ink);
+    padding: 5px 10px 3px; border-radius: 3px;
   }
+  .chip {
+    font-weight: 600; font-size: 16px; letter-spacing: .12em; text-transform: uppercase;
+    color: #fff; padding: 5px 11px 3px; border-radius: 3px;
+  }
+  .chip.youtube { background: #e62117; }
+  .chip.twitch  { background: #7b3fe4; }
+  .chip.other   { background: #444; }
 
   .message {
-    color: #ffffff;
-    font-size: 24px;
-    font-weight: 400;
-    line-height: 1.35;
-    word-wrap: break-word;
+    font-weight: 500;
+    font-size: 40px; line-height: 1.25;
+    color: var(--ink);
+    padding: 14px 24px 18px;
+    word-wrap: break-word; overflow-wrap: anywhere;
     white-space: pre-wrap;
+    overflow-y: auto;
   }
+  .message img { height: 1.4em; width: auto; vertical-align: -0.3em; margin: 0 2px; }
 
-  /* scrollbar sottile per messaggi molto lunghi */
-  .card::-webkit-scrollbar { width: 6px; }
-  .card::-webkit-scrollbar-thumb { background: #C5A253; border-radius: 3px; }
-  .card::-webkit-scrollbar-track { background: transparent; }
+  /* membri / sub / mod / donazioni: pannello oro */
+  .card.vip { background: var(--gold); border-color: #fff3bf; }
+  .card.vip .name { color: #fff; }
+  .card.vip .head { background: #1a1400; }
+
+  .message::-webkit-scrollbar { width: 6px; }
+  .message::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 3px; }
+  .message::-webkit-scrollbar-track { background: transparent; }
 </style>
 </head>
 <body>
@@ -119,23 +133,32 @@
 
 <script>
   const urlParams = new URLSearchParams(window.location.search);
-  const session = urlParams.get('session');
+  const session = urlParams.get('session') || 'xMYd3nZK7g';
+  const channel = parseInt(urlParams.get('channel') || '4', 10);
   const showtime = parseInt(urlParams.get('showtime')) || 12000; // ms, default 12s
 
   let socket = null;
   let hideTimer = null;
 
-  if (!session) {
-    document.body.innerHTML = "<div style='color:#C5A253;font-family:sans-serif;padding:20px;'>Manca ?session=IL_TUO_SESSION_ID nell'URL</div>";
-  } else {
-    connect();
-  }
+  /* etichette in italiano per eventi e donazioni */
+  const LABELS = {
+    donation: 'DONAZIONE', donations: 'DONAZIONE', tip: 'DONAZIONE',
+    subscription: 'ABBONAMENTO', subscriber: 'SUB', sub: 'SUB', resub: 'RINNOVO',
+    membership: 'MEMBRO', member: 'MEMBRO',
+    giftsub: 'SUB REGALATO', giftedsub: 'SUB REGALATO', gift: 'REGALO',
+    follow: 'NUOVO FOLLOWER', follower: 'NUOVO FOLLOWER',
+    raid: 'RAID', cheer: 'BIT', bits: 'BIT',
+    superchat: 'SUPER CHAT', supersticker: 'SUPER STICKER'
+  };
+  const label = k => LABELS[String(k || '').toLowerCase().replace(/[\s_-]/g, '')] || null;
+
+  connect();
 
   function connect(){
     socket = new WebSocket('wss://io.socialstream.ninja:443');
 
     socket.addEventListener('open', () => {
-      socket.send(JSON.stringify({ join: session, in: 4, out: 4 }));
+      socket.send(JSON.stringify({ join: session, in: channel, out: channel }));
     });
 
     socket.addEventListener('message', (event) => {
@@ -144,6 +167,7 @@
         data = JSON.parse(event.data);
       } catch(e){ return; }
 
+      if (data && data.overlayNinja) data = data.overlayNinja;
       // ignora messaggi di sistema / join ack
       if (!data || (!data.chatmessage && !data.chatname)) return;
 
@@ -159,46 +183,74 @@
     });
   }
 
+  /* testo + sole emote <img>; tutto il resto viene scartato */
+  function renderText(target, html) {
+    const doc = new DOMParser().parseFromString('<div>' + (html || '') + '</div>', 'text/html');
+    (function walk(node) {
+      node.childNodes.forEach(n => {
+        if (n.nodeType === 3) target.appendChild(document.createTextNode(n.textContent));
+        else if (n.nodeName === 'IMG') {
+          const src = n.getAttribute('src') || '';
+          if (/^https?:\/\//i.test(src)) {
+            const im = document.createElement('img'); im.src = src; target.appendChild(im);
+          }
+        } else walk(n);
+      });
+    })(doc.body.firstChild);
+  }
+
   function renderMessage(data){
     const container = document.getElementById('container');
     container.innerHTML = '';
 
+    const type = String(data.type || '').toLowerCase();
+    const platform = type === 'youtube' ? 'youtube' : type === 'twitch' ? 'twitch' : 'other';
+
+    /* etichette speciali (evento / donazione / ruolo) */
+    const tags = [];
+    const ev = label(data.event) || label(data.eventType);
+    if (ev) tags.push(ev);
+    if (data.hasDonation) tags.push('DONAZIONE ' + data.hasDonation);
+    if (data.membership) tags.push('MEMBRO');
+    else if (data.subscriber) tags.push('SUB');
+    if (data.moderator || data.mod) tags.push('MOD');
+    const vip = tags.length > 0;
+
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card' + (vip ? ' vip' : '');
 
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar';
+    const stripe = document.createElement('div'); stripe.className = 'stripe';
+    const body = document.createElement('div'); body.className = 'body';
+    const head = document.createElement('div'); head.className = 'head';
+
     if (data.chatimg) {
-      avatar.style.backgroundImage = `url('${data.chatimg}')`;
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.style.backgroundImage = 'url("' + String(data.chatimg).replace(/"/g, '%22') + '")';
+      head.appendChild(avatar);
     }
-
-    const bodyText = document.createElement('div');
-    bodyText.className = 'body-text';
 
     const name = document.createElement('div');
     name.className = 'name';
+    name.textContent = data.chatname || '';
+    head.appendChild(name);
 
-    if (data.type) {
-      const icon = document.createElement('img');
-      icon.className = 'source-icon';
-      icon.src = `https://socialstream.ninja/sources/images/${data.type}.png`;
-      icon.onerror = () => icon.style.display = 'none';
-      name.appendChild(icon);
-    }
-
-    const nameText = document.createElement('span');
-    nameText.textContent = data.chatname || '';
-    name.appendChild(nameText);
+    const right = document.createElement('div'); right.className = 'tags';
+    tags.forEach(t => { const e = document.createElement('div'); e.className = 'tag'; e.textContent = t; right.appendChild(e); });
+    const chip = document.createElement('div');
+    chip.className = 'chip ' + platform;
+    chip.textContent = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'chat');
+    right.appendChild(chip);
+    head.appendChild(right);
 
     const message = document.createElement('div');
     message.className = 'message';
-    message.textContent = data.chatmessage || '';
+    renderText(message, data.chatmessage || '');
 
-    bodyText.appendChild(name);
-    bodyText.appendChild(message);
-
-    card.appendChild(avatar);
-    card.appendChild(bodyText);
+    body.appendChild(head);
+    body.appendChild(message);
+    card.appendChild(stripe);
+    card.appendChild(body);
     container.appendChild(card);
 
     requestAnimationFrame(() => card.classList.add('show'));
@@ -208,6 +260,11 @@
       card.classList.remove('show');
       setTimeout(() => { container.innerHTML = ''; }, 400);
     }, showtime);
+  }
+
+  /* anteprima: ?demo */
+  if (urlParams.has('demo')) {
+    renderMessage({ chatname: 'Tifoso_Doc', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce!', type: 'youtube', membership: true });
   }
 </script>
 

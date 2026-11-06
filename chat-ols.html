@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>OLS Chat Overlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #F4C430;
+    --gold-deep: #c3940c;
+    --ivory: #f7f2e4;
+    --ink: #0b0b0b;
+    --w: 560px;          /* larghezza colonna (override: ?width=) */
+    --scale: 1;          /* scala generale (override: ?scale=) */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: 'Oswald', sans-serif;
+  }
+  #stack {
+    position: absolute;
+    left: 24px; bottom: 24px;
+    width: var(--w);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    gap: 12px;
+    transform: scale(var(--scale));
+    transform-origin: left bottom;
+  }
+  body.right #stack { left: auto; right: 24px; transform-origin: right bottom; }
+
+  .msg {
+    position: relative;
+    display: flex;
+    background: var(--ivory);
+    border: 4px solid var(--gold);
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px var(--ink), 0 0 22px rgba(244,196,48,.55), 0 8px 18px rgba(0,0,0,.55);
+    animation: slideIn .45s cubic-bezier(.2,.9,.25,1) both;
+    overflow: hidden;
+  }
+  .msg.out { animation: slideOut .35s ease-in both; }
+
+  /* banda laterale pinstripe bianconera */
+  .stripe {
+    flex: 0 0 14px;
+    background: repeating-linear-gradient(135deg, #0b0b0b 0 5px, #ffffff 5px 10px);
+    border-right: 3px solid var(--gold);
+  }
+  .body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .head {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--ink);
+    padding: 5px 12px 5px 10px;
+    position: relative;
+  }
+  .head::after { /* filo oro sotto la testata */
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent 85%);
+  }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: #222 center/cover no-repeat;
+    flex: 0 0 auto;
+  }
+  .name {
+    font-family: 'Anton', sans-serif;
+    font-size: 24px; line-height: 1;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding-top: 2px;
+  }
+  .chip {
+    margin-left: auto;
+    flex: 0 0 auto;
+    font-family: 'Oswald', sans-serif; font-weight: 600;
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: #fff; padding: 3px 8px 2px; border-radius: 2px;
+  }
+  .chip.youtube { background: #e62117; }
+  .chip.twitch  { background: #7b3fe4; }
+  .chip.other   { background: #444; }
+
+  .text {
+    font-weight: 500;
+    font-size: 26px; line-height: 1.22;
+    color: var(--ink);
+    padding: 8px 14px 10px;
+    word-wrap: break-word; overflow-wrap: anywhere;
+  }
+  .text img {
+    height: 1.5em; width: auto; vertical-align: -0.35em; margin: 0 1px;
+  }
+
+  /* membro / sub / mod: pannello oro */
+  .msg.vip { background: var(--gold); border-color: #fff3bf; }
+  .msg.vip .name { color: #fff; }
+  .msg.vip .head { background: #1a1400; }
+  .msg.vip .tag {
+    font-family: 'Anton', sans-serif; font-size: 13px; letter-spacing: .14em;
+    background: var(--gold); color: var(--ink); padding: 3px 7px 1px; border-radius: 2px;
+  }
+  .tag { display: none; }
+  .msg.vip .tag { display: inline-block; }
+
+  @keyframes slideIn  { from { transform: translateX(-60px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes slideOut { from { transform: none; opacity: 1; } to { transform: translateX(-60px); opacity: 0; } }
+  body.right .msg { animation-name: slideInR; }
+  body.right .msg.out { animation-name: slideOutR; }
+  @keyframes slideInR  { from { transform: translateX(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes slideOutR { from { transform: none; opacity: 1; } to { transform: translateX(60px); opacity: 0; } }
+</style>
+</head>
+<body>
+<div id="stack"></div>
+
+<script>
+(function () {
+  const q = new URLSearchParams(location.search);
+  const SESSION  = q.get('session') || 'xMYd3nZK7g';
+  const CHANNEL  = q.get('channel') || '4';
+  const MAX      = parseInt(q.get('max') || '6', 10);          // messaggi visibili
+  const SHOWTIME = parseInt(q.get('showtime') || '0', 10);      // secondi; 0 = restano finché non vengono spinti via
+  const HIDEBOTS = (q.get('hidebots') || 'streamelements,nightbot,streamlabs,moobot,restream,fossabot').toLowerCase().split(',');
+  if (q.get('width'))  document.documentElement.style.setProperty('--w', q.get('width') + 'px');
+  if (q.get('scale'))  document.documentElement.style.setProperty('--scale', q.get('scale'));
+  if (q.get('side') === 'right') document.body.classList.add('right');
+
+  const stack = document.getElementById('stack');
+  const seen = new Set();
+
+  /* testo + sole emote <img>; tutto il resto viene scartato */
+  function renderText(target, html) {
+    const doc = new DOMParser().parseFromString('<div>' + (html || '') + '</div>', 'text/html');
+    (function walk(node) {
+      node.childNodes.forEach(n => {
+        if (n.nodeType === 3) target.appendChild(document.createTextNode(n.textContent));
+        else if (n.nodeName === 'IMG') {
+          const src = n.getAttribute('src') || '';
+          if (/^https?:\/\//i.test(src)) {
+            const im = document.createElement('img'); im.src = src; target.appendChild(im);
+          }
+        } else walk(n);
+      });
+    })(doc.body.firstChild);
+  }
+
+  function remove(el) {
+    if (!el || el.classList.contains('out')) return;
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 380);
+  }
+
+  function addMessage(m) {
+    const name = (m.chatname || '').trim();
+    const text = m.chatmessage || '';
+    if (!name || !text) return;
+    if (m.event) return;                                         // niente eventi (sub, donazioni...) nella chat
+    if (HIDEBOTS.includes(name.toLowerCase())) return;
+    if (text.trim().startsWith('!')) return;                     // comandi
+
+    const id = m.id || (name + '|' + text + '|' + (m.timestamp || ''));
+    if (seen.has(id)) return;
+    seen.add(id); if (seen.size > 500) seen.delete(seen.values().next().value);
+
+    const type = (m.type || '').toLowerCase();
+    const platform = type === 'youtube' ? 'youtube' : type === 'twitch' ? 'twitch' : 'other';
+    const vip = !!(m.membership || m.subscriber || m.moderator || m.mod || m.hasMembership);
+
+    const el = document.createElement('div');
+    el.className = 'msg' + (vip ? ' vip' : '');
+
+    const stripe = document.createElement('div'); stripe.className = 'stripe';
+    const body = document.createElement('div'); body.className = 'body';
+    const head = document.createElement('div'); head.className = 'head';
+
+    if (m.chatimg) {
+      const av = document.createElement('div'); av.className = 'avatar';
+      av.style.backgroundImage = 'url("' + String(m.chatimg).replace(/"/g, '%22') + '")';
+      head.appendChild(av);
+    }
+    const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = name; head.appendChild(nm);
+    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = m.membership ? 'MEMBRO' : (m.moderator || m.mod ? 'MOD' : 'SUB'); head.appendChild(tag);
+    const chip = document.createElement('div'); chip.className = 'chip ' + platform;
+    chip.textContent = platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : (type || 'chat'); head.appendChild(chip);
+
+    const tx = document.createElement('div'); tx.className = 'text'; renderText(tx, text);
+    body.appendChild(head); body.appendChild(tx);
+    el.appendChild(stripe); el.appendChild(body);
+    stack.appendChild(el);
+
+    while (stack.children.length > MAX) remove(stack.firstElementChild);
+    if (SHOWTIME > 0) setTimeout(() => remove(el), SHOWTIME * 1000);
+  }
+
+  /* ---------- WebSocket SSN ---------- */
+  let ws, retry = 1000;
+  function handle(raw) {
+    let d; try { d = JSON.parse(raw); } catch (e) { return; }
+    const list = Array.isArray(d) ? d : [d];
+    list.forEach(x => {
+      if (!x) return;
+      if (x.overlayNinja) x = x.overlayNinja;
+      if (x.chatname !== undefined) addMessage(x);
+    });
+  }
+  function connect() {
+    ws = new WebSocket('wss://io.socialstream.ninja:443');
+    ws.onopen = () => {
+      retry = 1000;
+      ws.send(JSON.stringify({ join: SESSION, in: parseInt(CHANNEL, 10), out: parseInt(CHANNEL, 10) }));
+    };
+    ws.onmessage = e => handle(e.data);
+    ws.onclose = () => { setTimeout(connect, retry); retry = Math.min(retry * 2, 15000); };
+    ws.onerror = () => ws.close();
+  }
+
+  if (q.has('demo')) {
+    const demo = [
+      { chatname: 'Marco_Bianconero', chatmessage: 'Che partita ragazzi, Yildiz ha spaccato tutto!', type: 'youtube' },
+      { chatname: 'Zebrina99', chatmessage: 'Fino alla fine forza Juve 🖤🤍', type: 'twitch', subscriber: true },
+      { chatname: 'Tifoso_Doc', chatmessage: 'Secondo me Spalletti deve cambiare modulo, il centrocampo è troppo lento e non copriamo le fasce', type: 'youtube', membership: true },
+      { chatname: 'Antimo_fan', chatmessage: 'Pagelle a fine partita? 7 a Locatelli', type: 'twitch' },
+    ];
+    demo.forEach((m, i) => setTimeout(() => addMessage(Object.assign({ id: 'd' + i }, m)), i * 600));
+  } else {
+    connect();
+  }
+})();
+</script>
+</body>
+</html>
