@@ -192,16 +192,22 @@
     if (LOGOS[type]) { const l = document.createElement('span'); l.className = 'logo'; l.innerHTML = LOGOS[type]; tagEl.appendChild(l); }
     if (parts.length) { const t = document.createElement('span'); t.textContent = parts.join(' \u00b7 '); tagEl.appendChild(t); }
   }
-  /* badge ufficiali inviati da SSN (chatbadges); ?badges=0 per nasconderli, max 3 */
+  /* badge ufficiali inviati da SSN (chatbadges); ?badges=0 li nasconde, ?badges=tutti li mostra tutti; di default solo quello da abbonato */
   function buildBadges(list){
-    if (new URLSearchParams(location.search).get('badges') === '0') return null;
+    const q = new URLSearchParams(location.search).get('badges');
+    if (q === '0') return null;
+    const SUB = /subscriber|sub[-_ ]?badge|member|abbonat|founder|sponsor/i;
+    const OTHER = /moderator|\bmod\b|vip|broadcaster|owner|staff|admin|verified|partner|bits|cheer|turbo|prime|premiere|hype|glhf|sub-gift|gifter|predictions|no_audio|no_video/i;
     const wrap = document.createElement('div'); wrap.className = 'badges';
-    (Array.isArray(list) ? list : []).slice(0, 3).forEach(b => {
+    for (const b of (Array.isArray(list) ? list : [])) {
       const src = typeof b === 'string' ? b : (b && b.src);
-      if (!src || !/^(https?:|data:image\/)/i.test(src)) return;
+      if (!src || !/^(https?:|data:image\/)/i.test(src)) continue;
+      const desc = typeof b === 'string' ? b : [b.type, b.text, b.title, b.src].join(' ');
+      if (q !== 'tutti' && (!SUB.test(desc) || OTHER.test(desc))) continue;
       const im = document.createElement('img'); im.referrerPolicy = 'no-referrer'; im.src = src; im.onerror = () => im.remove();
       wrap.appendChild(im);
-    });
+      if (q !== 'tutti') break;
+    }
     return wrap.children.length ? wrap : null;
   }
 
@@ -332,7 +338,7 @@
       corto: { chatname: 'Zebrina99', chatmessage: 'Fino alla fine!', type: 'twitch' },
       lungo: { chatname: 'Marco_Bianconero', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento, non copriamo le fasce e quando perdiamo palla in uscita siamo sempre scoperti. Con Locatelli e Thuram più vicini a Yildiz la squadra respira, ma serve qualcuno che giochi tra le linee senza aspettare il tuo passaggio, altrimenti ripetiamo sempre la stessa partita.', type: 'youtube' }
     };
-    renderMessage(sample[d] || { chatname: 'oldladyshow', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'twitch', membership: true, chatbadges: ['data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2036%2036%27%3E%3Crect%20width%3D%2736%27%20height%3D%2736%27%20rx%3D%276%27%20fill%3D%27%239146FF%27/%3E%3Cpath%20d%3D%27M18%207l3.2%207%207.6.8-5.7%205.1%201.7%207.5L18%2023.4%2011.2%2027.4l1.7-7.5-5.7-5.1%207.6-.8z%27%20fill%3D%27%23fff%27/%3E%3C/svg%3E'] });
+    renderMessage(sample[d] || { chatname: 'oldladyshow', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento e non copriamo le fasce.', type: 'twitch', membership: true, chatbadges: [{type:'subscriber', text:'Abbonato', src:'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2036%2036%27%3E%3Crect%20width%3D%2736%27%20height%3D%2736%27%20rx%3D%276%27%20fill%3D%27%239146FF%27/%3E%3Cpath%20d%3D%27M18%207l3.2%207%207.6.8-5.7%205.1%201.7%207.5L18%2023.4%2011.2%2027.4l1.7-7.5-5.7-5.1%207.6-.8z%27%20fill%3D%27%23fff%27/%3E%3C/svg%3E'}] });
   }
 </script>
 
