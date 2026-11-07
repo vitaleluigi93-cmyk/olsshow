@@ -48,6 +48,7 @@
     border-bottom: 4px solid var(--gold);
     animation: in .5s cubic-bezier(.3,.7,.2,1) both;
   }
+  .msg.don { --paper:#F4C430; --ink:#15151A; border-bottom-color:#15151A; }
   .msg.out { animation: out .3s ease-in both; }
 
   .plate {
@@ -231,6 +232,7 @@
     pinfo.appendChild(row); pinfo.appendChild(tag);
     plate.appendChild(avatar); plate.appendChild(pinfo);
 
+    if (m.hasDonation) el.classList.add('don');
     const tx = document.createElement('div'); tx.className = 'text'; renderText(tx, text);
     el.appendChild(plate); el.appendChild(tx);
     stack.appendChild(el);

@@ -48,6 +48,11 @@
   }
   .card.show { opacity:1; transform:none; }
 
+  /* messaggi speciali: donazioni tutte oro, abbonamenti regalo viola (Twitch) o rosso (YouTube) */
+  .card.don  { --paper:#F4C430; --ink:#15151A; border-bottom-color:#15151A; }
+  .card.gift-twitch  { --paper:#9146FF; --ink:#FFFFFF; border-bottom-color:#5B2BB8; }
+  .card.gift-youtube { --paper:#D6201B; --ink:#FFFFFF; border-bottom-color:#8E100C; }
+
   .plate {
     position: relative; isolation: isolate;
     flex: 0 0 auto;
@@ -144,7 +149,7 @@
     donation: 'Donazione', donations: 'Donazione', tip: 'Donazione',
     subscription: 'Nuovo abbonato', subscriber: 'Nuovo abbonato', sub: 'Nuovo abbonato',
     resub: 'Abbonato', membership: 'Nuovo abbonato', member: 'Nuovo abbonato',
-    giftsub: 'Abbonamento regalato', giftedsub: 'Abbonamento regalato', gift: 'Abbonamento regalato',
+    giftsub: 'Abbonamento regalato', giftpurchase: 'Abbonamento regalato', giftredemption: 'Abbonamento regalato', giftmembership: 'Abbonamento regalato', giftedsub: 'Abbonamento regalato', gift: 'Abbonamento regalato',
     follow: 'Nuovo follower', follower: 'Nuovo follower',
     raid: 'Raid', cheer: 'Bit', bits: 'Bit',
     superchat: 'Super Chat', supersticker: 'Super Sticker'
@@ -289,8 +294,11 @@
     if (isSub) tagParts.push('Abbonato');
     if (extra) tagParts.push(extra);
 
+    const evKey = String(data.event || data.eventType || '').toLowerCase().replace(/[\s_-]/g, '');
+    const isDon = !!data.hasDonation || /^(donation|donations|tip|cheer|bits|superchat|supersticker)$/.test(evKey);
+    const isGift = !isDon && /gift/.test(evKey);
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card' + (isDon ? ' don' : isGift ? ' gift-' + (type === 'youtube' ? 'youtube' : 'twitch') : '');
 
     /* placca: avatar + nome + piattaforma/abbonato */
     const plate = document.createElement('div'); plate.className = 'plate';
@@ -331,10 +339,13 @@
     if (showtime > 0) hideTimer = setTimeout(clearMessage, showtime);
   }
 
-  /* anteprima: ?demo (abbonato) · ?demo=corto · ?demo=lungo */
+  /* anteprima: ?demo (abbonato) · ?demo=corto · ?demo=lungo · ?demo=donazione · ?demo=regalo · ?demo=regaloyt */
   if (urlParams.has('demo')) {
     const d = urlParams.get('demo');
     const sample = {
+      donazione: { chatname: 'Zebrina99', chatmessage: 'Grande OLS, continuate così!', type: 'youtube', hasDonation: '€5,00', event: 'superchat' },
+      regalo: { chatname: 'Tifoso_Doc', chatmessage: 'Ha regalato 5 abbonamenti alla community!', type: 'twitch', event: 'giftsub' },
+      regaloyt: { chatname: 'Tifoso_Doc', chatmessage: 'Ha regalato 5 abbonamenti alla community!', type: 'youtube', event: 'giftpurchase' },
       corto: { chatname: 'Zebrina99', chatmessage: 'Fino alla fine!', type: 'twitch' },
       lungo: { chatname: 'Marco_Bianconero', chatmessage: 'Secondo me Spalletti deve cambiare modulo: il centrocampo è troppo lento, non copriamo le fasce e quando perdiamo palla in uscita siamo sempre scoperti. Con Locatelli e Thuram più vicini a Yildiz la squadra respira, ma serve qualcuno che giochi tra le linee senza aspettare il tuo passaggio, altrimenti ripetiamo sempre la stessa partita.', type: 'youtube' }
     };
