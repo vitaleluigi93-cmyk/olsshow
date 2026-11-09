@@ -73,6 +73,7 @@
 
   .avatar {
     flex: 0 0 auto;
+    aspect-ratio: 1 / 1;
     width: 66px; height: 66px; border-radius: 50%;
     background: var(--gold); color: #15151A;
     display:flex; align-items:center; justify-content:center;
@@ -80,7 +81,7 @@
     overflow: hidden;
   }
   .avatar { position: relative; }
-  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; }
   .avatar.ok { background: transparent; }
 
   .pinfo { min-width:0; display:flex; flex-direction:column; justify-content:center; gap:9px; }
@@ -198,20 +199,24 @@
     if (parts.length) { const t = document.createElement('span'); t.textContent = parts.join(' \u00b7 '); tagEl.appendChild(t); }
   }
   /* badge ufficiali inviati da SSN (chatbadges); ?badges=0 li nasconde, ?badges=tutti li mostra tutti; di default solo quello da abbonato */
-  function buildBadges(list){
+  function buildBadges(list, isSub){
     const q = new URLSearchParams(location.search).get('badges');
     if (q === '0') return null;
     const SUB = /subscriber|sub[-_ ]?badge|member|abbonat|founder|sponsor/i;
     const OTHER = /moderator|\bmod\b|vip|broadcaster|owner|staff|admin|verified|partner|bits|cheer|turbo|prime|premiere|hype|glhf|sub-gift|gifter|predictions|no_audio|no_video/i;
     const wrap = document.createElement('div'); wrap.className = 'badges';
-    for (const b of (Array.isArray(list) ? list : [])) {
+    const items = (Array.isArray(list) ? list : []).filter(b => {
       const src = typeof b === 'string' ? b : (b && b.src);
-      if (!src || !/^(https?:|data:image\/)/i.test(src)) continue;
-      const desc = typeof b === 'string' ? b : [b.type, b.text, b.title, b.src].join(' ');
-      if (q !== 'tutti' && (!SUB.test(desc) || OTHER.test(desc))) continue;
-      const im = document.createElement('img'); im.referrerPolicy = 'no-referrer'; im.src = src; im.onerror = () => im.remove();
-      wrap.appendChild(im);
-      if (q !== 'tutti') break;
+      return src && /^(https?:|data:image\/)/i.test(src);
+    });
+    const descOf = b => typeof b === 'string' ? b : [b.type, b.text, b.title, b.src].join(' ');
+    const mk = b => { const im = document.createElement('img'); im.referrerPolicy = 'no-referrer'; im.src = typeof b === 'string' ? b : b.src; im.onerror = () => im.remove(); wrap.appendChild(im); };
+    if (q === 'tutti') items.slice(0, 3).forEach(mk);
+    else {
+      /* 1) badge riconosciuto come abbonato; 2) se l'utente è abbonato ma i badge non hanno descrizione (caso YouTube), il primo non riconosciuto come mod/VIP/ecc. */
+      let pick = items.find(b => SUB.test(descOf(b)) && !OTHER.test(descOf(b)));
+      if (!pick && isSub) pick = items.find(b => !OTHER.test(descOf(b)));
+      if (pick) mk(pick);
     }
     return wrap.children.length ? wrap : null;
   }
@@ -317,7 +322,7 @@
     const tag = document.createElement('div'); tag.className = 'tag'; buildTag(tag, type, tagParts);
     if (isSub) nm.classList.add('sub');
     const row = document.createElement('div'); row.className = 'namerow'; row.appendChild(nm);
-    const bd = buildBadges(data.chatbadges); if (bd) row.appendChild(bd);
+    const bd = buildBadges(data.chatbadges, isSub); if (bd) row.appendChild(bd);
     pinfo.appendChild(row); pinfo.appendChild(tag);
     plate.appendChild(avatar); plate.appendChild(pinfo);
 
